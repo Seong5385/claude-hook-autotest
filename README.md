@@ -6,11 +6,13 @@ Claude Code가 답변을 마칠 때마다 **pytest를 자동으로 실행**하�
 
 ```
 Claude 답변 끝 → Stop 훅 실행 → pytest
-                                  ├─ 통과 / 테스트 없음 → 그대로 종료
+                                  ├─ 통과 → CLI 창에 "✅ pytest 통과" 표시 후 종료
+                                  ├─ 테스트 없음 → 그대로 종료
                                   └─ 실패 → 실패 내용을 Claude에게 전달 → Claude가 이어서 수정
 ```
 
-- 무한 반복 방지: 한 번 이어서 고친 뒤(`stop_hook_active: true`)에는 다시 막지 않고 종료합니다.
+- 통과 메시지는 `systemMessage`로 출력되어 CLI 창에만 보이고, Claude에게는 전달되지 않습니다.
+- 무한 반복 방지: 한 번 이어서 고친 뒤(`stop_hook_active: true`)에도 실패하면 더 막지 않고, CLI 창에 "❌ pytest 실패가 남아 있습니다"만 표시하고 종료합니다.
 - pytest가 설치되어 있지 않으면 테스트를 건너뜁니다.
 
 ## 파일 구성

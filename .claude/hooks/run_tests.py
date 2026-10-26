@@ -6,9 +6,12 @@ import sys
 
 data = json.load(sys.stdin)
 
-# 이미 테스트 실패로 한 번 이어서 작업했다면 여기서 멈춤 (무한 반복 방지)
-if data.get("stop_hook_active"):
+
+def show(message):
+    # CLI 창에만 표시되고 Claude에게는 전달되지 않는 메시지
+    print(json.dumps({"systemMessage": message}, ensure_ascii=False))
     sys.exit(0)
+
 
 project_dir = os.environ.get("CLAUDE_PROJECT_DIR") or data.get("cwd") or os.getcwd()
 if not os.path.isdir(os.path.join(project_dir, "tests")):
@@ -23,14 +26,20 @@ result = subprocess.run(
     errors="replace",
 )
 output = (result.stdout + result.stderr).strip()
+summary = output.splitlines()[-1] if output else ""
 
 if "No module named pytest" in output:
-    print("pytest가 설치되어 있지 않아 테스트를 건너뜁니다: python -m pip install pytest", file=sys.stderr)
-    sys.exit(0)
+    show("⚠️ pytest가 설치되어 있지 않아 테스트를 건너뜁니다: python -m pip install pytest")
 
-# 0: 모두 통과, 5: 테스트 없음
-if result.returncode in (0, 5):
-    sys.exit(0)
+if result.returncode == 0:
+    show(f"✅ pytest 통과 ({summary})")
+
+if result.returncode == 5:
+    sys.exit(0)  # 테스트 없음
+
+# 이미 테스트 실패로 한 번 이어서 작업했다면 더 막지 않고 멈춤 (무한 반복 방지)
+if data.get("stop_hook_active"):
+    show(f"❌ pytest 실패가 남아 있습니다 ({summary})")
 
 print(json.dumps({
     "decision": "block",
