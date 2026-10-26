@@ -1,3 +1,12 @@
+# Python
 __pycache__/
 *.pyc
 .pytest_cache/
+
+# 가상환경
+.venv/
+venv/
+
+# 개인 설정 (Claude Code 로컬 설정, 비밀 값)
+.claude/settings.local.json
+.env
